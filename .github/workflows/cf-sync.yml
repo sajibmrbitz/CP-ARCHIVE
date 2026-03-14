@@ -1,0 +1,19 @@
+name: Codeforces Sync
+
+on:
+  schedule:
+    - cron: '0 0 * * *' 
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Sync Codeforces Submissions
+        uses: k0ng2/codeforces-sync@v1.1.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          codeforces_handle: 'sajib2405129'
