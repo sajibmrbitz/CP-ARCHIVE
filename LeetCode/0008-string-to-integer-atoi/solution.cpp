@@ -1,23 +1,54 @@
-class Solution{
+class Solution {
 public:
-    int myAtoi(string s){
-        int i= 0,n=s.size(),sign=1;
-        while(i<n && s[i]==' ')  i++;
-
-        if(i<n && (s[i]=='-' || s[i] == '+')){
-            sign=(s[i]=='-')?-1:1;
-            i++;
-        }
-
+    int myAtoi(string s) {
         long long num=0;
-        while(i<n && isdigit(s[i])){
-            num=num*10+(s[i]-'0');
-            if(sign==1 && num>INT_MAX) return INT_MAX;
-            if(sign==-1 && -num<INT_MIN) return INT_MIN;
-            i++;
+        int n=s.size();
+        bool isNegative=false;
+        bool digitFound=false;
+        for(int i=0;i<n;i++){
+            if(s[i]==' '){
+                if(digitFound){
+                    break;
+                }
+                continue;
+            }
+            else if(s[i]=='+'){
+                if(digitFound){
+                    break;
+                }
+                digitFound=true;
+                continue;
+            }
+            else if((s[i]>=65 && s[i]<=90) || (s[i]>=97 && s[i]<=122)){
+                break;
+            }
+            else if(isdigit(s[i])){
+                num=num*10+(s[i]-'0');
+                digitFound=true;
+
+                if(num>INT_MAX){
+                    if(isNegative){
+                        return INT_MIN;
+                    }
+                    return INT_MAX;
+                }
+            }
+            else if(s[i]=='-'){
+                if(digitFound){
+                    break;
+                }
+                isNegative=true;
+                digitFound=true;
+            }
+            else if(s[i]<48 || s[i]>57){
+                break;
+            }
         }
 
-        return (int)(sign*num);
+        if(isNegative){
+            num=num*(-1);
+        }
+
+        return num;
     }
 };
-
