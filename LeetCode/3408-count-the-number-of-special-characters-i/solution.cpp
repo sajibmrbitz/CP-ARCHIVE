@@ -1,0 +1,27 @@
+class Solution {
+public:
+    int numberOfSpecialChars(string word) {
+        vector<bool> lower(26,false);
+        vector<bool> capital(26,false);
+
+        for(char c:word){
+            
+            if(c>='a' && c<='z'){
+                lower[c-'a']=true;
+            } 
+            else if(c>='A' && c<='Z'){
+                capital[c-'A']=true;
+            }
+        }
+
+        int special=0;
+
+        for(int i=0;i<26;i++){
+            if(lower[i]==true && capital[i]==true){
+                special++;
+            }
+        }
+
+        return special;
+    }
+};
