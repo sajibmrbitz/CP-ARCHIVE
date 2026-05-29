@@ -1,4 +1,4 @@
-<h2><a href="https://leetcode.com/problems/minimum-element-after-replacement-with-digit-sum">Minimum Element After Replacement With Digit Sum</a></h2> <img src='https://img.shields.io/badge/Difficulty-Easy-brightgreen' alt='Difficulty: Easy' /><hr><p>You are given an integer array <code>nums</code>.</p>
+<p>You are given an integer array <code>nums</code>.</p>
 
 <p>You replace each element in <code>nums</code> with the <strong>sum</strong> of its digits.</p>
 
