@@ -24,10 +24,10 @@ jobs:
         run: python sync.py
 
       - name: Commit and Push
+- name: Commit and Push
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "sajibmrbitz"
+          git config --global user.email "sajibmr2005@gmail.com"
           git add .
           
-          # skip if no new update
           git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-synced new Codeforces submissions" && git push)
