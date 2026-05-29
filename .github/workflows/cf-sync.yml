@@ -24,7 +24,6 @@ jobs:
         run: python sync.py
 
       - name: Commit and Push
-- name: Commit and Push
         run: |
           git config --global user.name "sajibmrbitz"
           git config --global user.email "sajibmr2005@gmail.com"
