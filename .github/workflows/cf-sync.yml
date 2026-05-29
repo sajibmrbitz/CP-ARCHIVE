@@ -1,19 +1,33 @@
-name: Codeforces Sync
+name: Codeforces Auto Sync
 
 on:
   schedule:
-    - cron: '0 0 * * *' 
-  workflow_dispatch: 
+    - cron: '0 0 * * *' # every night at 12
+  workflow_dispatch: # manual run
 
 jobs:
-  build:
+  sync:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Sync Codeforces Submissions
-        uses: k0ng2/codeforces-sync@v1.1.2
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          codeforces_handle: 'sajib2405129'
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Run Sync Script
+        run: python sync.py
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          
+          # skip if no new update
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-synced new Codeforces submissions" && git push)
