@@ -98,6 +98,7 @@ def sync_codeforces():
                         f.write(statement_html)
                         
                     added += 1
+                    time.sleep(1)
                 else:
                     print(f"Could not find code for {sub_id}.")
             except Exception as e:
