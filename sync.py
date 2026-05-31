@@ -1,5 +1,4 @@
 import requests
-from bs4 import BeautifulSoup
 import os
 import time
 import glob
@@ -7,6 +6,7 @@ import shutil
 import re
 
 HANDLE = "sajib2405129"
+# API URL for fetching submissions
 API_URL = f"https://codeforces.com/api/user.status?handle={HANDLE}"
 MAIN_FOLDER = "ACCEPTEDS"
 
@@ -30,19 +30,6 @@ def get_extension(lang):
     if 'Python' in lang: return 'py'
     if 'C' in lang: return 'c'
     return 'txt'
-
-def fetch_problem_statement(contest_id, index):
-    url = f"https://codeforces.com/contest/{contest_id}/problem/{index}"
-    try:
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-        page = requests.get(url, headers=headers)
-        soup = BeautifulSoup(page.text, 'html.parser')
-        statement = soup.find('div', class_='problem-statement')
-        if statement:
-            return str(statement)
-        return "<p>Problem statement could not be fetched.</p>"
-    except Exception as e:
-        return f"<p>Error fetching statement: {e}</p>"
 
 def sync_codeforces():
     print("Cleaning root files...")
@@ -79,32 +66,50 @@ def sync_codeforces():
             print(f"Downloading {contest_id}{index} - {problem_name} (Sub: {sub_id})...")
             os.makedirs(folder_name, exist_ok=True)
 
-            code_url = f"https://codeforces.com/contest/{contest_id}/submission/{sub_id}"
+            code_api_url = f"https://codeforces.com/api/contest.status?contestId={contest_id}&from=1&count=1&handle={HANDLE}"
+            
             try:
-                headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-                page = requests.get(code_url, headers=headers)
-                soup = BeautifulSoup(page.text, 'html.parser')
-                code_block = soup.find('pre', id='program-source-text')
+                problem_url = f"https://codeforces.com/contest/{contest_id}/problem/{index}"
+                with open(readme_path, 'w', encoding='utf-8') as f:
+                    f.write(f"<h1><a href='{problem_url}'>{contest_id}{index} - {problem_name}</a></h1>\n\n")
+                    f.write(f"<p>This is the solution for the problem <b>{problem_name}</b> on Codeforces.</p>")
+                    f.write(f"<p><a href='{problem_url}' target='_blank'>Click here to view the problem statement on Codeforces.</a></p>")
 
-                if code_block:
-                    with open(code_path, 'w', encoding='utf-8') as f:
-                        f.write(code_block.text)
-                    
-                    statement_html = fetch_problem_statement(contest_id, index)
-                    problem_url = f"https://codeforces.com/contest/{contest_id}/problem/{index}"
-                    
-                    with open(readme_path, 'w', encoding='utf-8') as f:
-                        f.write(f"<h1><a href='{problem_url}'>{contest_id}{index} - {problem_name}</a></h1>\n\n")
-                        f.write(statement_html)
-                        
-                    added += 1
-                    time.sleep(1)
-                else:
-                    print(f"Could not find code for {sub_id}.")
+                possible_old_files = [
+                    os.path.join(MAIN_FOLDER, f"{contest_id}{index}.{ext}"),
+                    os.path.join(MAIN_FOLDER, f"{contest_id}{index}{safe_name}.{ext}"),
+                    os.path.join(MAIN_FOLDER, f"{contest_id}{index}_{safe_name}.{ext}")
+                ]
+                
+                code_found = False
+                
+                
+                for root, dirs, files in os.walk(MAIN_FOLDER):
+                    if root == MAIN_FOLDER:
+                        for file in files:
+                            
+                            if file.startswith(f"{contest_id}{index}") and file.endswith(f".{ext}"):
+                                old_file_path = os.path.join(MAIN_FOLDER, file)
+                                shutil.move(old_file_path, code_path) 
+                                print(f"Moved existing code: {file} -> {folder_name}/solution.{ext}")
+                                code_found = True
+                                break
+                    if code_found: break
+
+                if not code_found:
+                     with open(code_path, 'w', encoding='utf-8') as f:
+                        f.write(f"// Solution for {contest_id}{index} - {problem_name}\n")
+                        f.write(f"// Submitted at: https://codeforces.com/contest/{contest_id}/submission/{sub_id}\n")
+                        f.write(f"// Currently manual fetch required due to CF blocking scrapers.\n")
+                     print(f"Created placeholder code for {sub_id}.")
+
+                added += 1
+                time.sleep(0.5)
+                
             except Exception as e:
-                print(f"Error fetching {sub_id}: {e}")
+                print(f"Error processing {sub_id}: {e}")
 
-    print(f"Sync complete. {added} new solutions added in LeetCode style.")
+    print(f"Sync complete. {added} new solutions organized in LeetCode style.")
 
 if __name__ == "__main__":
     sync_codeforces()
