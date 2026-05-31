@@ -37,7 +37,6 @@ def fetch_problem_statement(contest_id, index):
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
         page = requests.get(url, headers=headers)
         soup = BeautifulSoup(page.text, 'html.parser')
-        # Codeforces এর প্রবলেম ডেসক্রিপশনের মেইন ডিভটা খুঁজে বের করা
         statement = soup.find('div', class_='problem-statement')
         if statement:
             return str(statement)
@@ -68,14 +67,12 @@ def sync_codeforces():
             lang = sub['programmingLanguage']
             ext = get_extension(lang)
 
-            # ফোল্ডারের নাম সুন্দর করার জন্য স্পেশাল ক্যারেক্টার বাদ দেওয়া (যাতে উইন্ডোজ বা গিটহাবে এরর না দেয়)
             safe_name = re.sub(r'[\\/*?:"<>|]', "", problem_name)
             folder_name = os.path.join(MAIN_FOLDER, f"{contest_id}{index} - {safe_name}")
             
             code_path = os.path.join(folder_name, f"solution.{ext}")
             readme_path = os.path.join(folder_name, "README.md")
 
-            # যদি ফোল্ডারে কোড আর README দুইটাই থাকে, তাহলে স্কিপ করবে
             if os.path.exists(code_path) and os.path.exists(readme_path):
                 continue 
 
@@ -90,21 +87,17 @@ def sync_codeforces():
                 code_block = soup.find('pre', id='program-source-text')
 
                 if code_block:
-                    # ১. সল্যুশন কোড সেভ করা
                     with open(code_path, 'w', encoding='utf-8') as f:
                         f.write(code_block.text)
                     
-                    # ২. প্রবলেম স্টেটমেন্ট (README) সেভ করা
                     statement_html = fetch_problem_statement(contest_id, index)
                     problem_url = f"https://codeforces.com/contest/{contest_id}/problem/{index}"
                     
-                    # README ফাইলে টাইটেল, লিংক এবং প্রবলেম ডেসক্রিপশন লেখা
                     with open(readme_path, 'w', encoding='utf-8') as f:
                         f.write(f"<h1><a href='{problem_url}'>{contest_id}{index} - {problem_name}</a></h1>\n\n")
                         f.write(statement_html)
                         
                     added += 1
-                    time.sleep(1) # CF সার্ভারকে স্প্যাম না করার জন্য ১ সেকেন্ড ব্রেক
                 else:
                     print(f"Could not find code for {sub_id}.")
             except Exception as e:
