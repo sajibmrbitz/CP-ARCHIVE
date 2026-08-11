@@ -4,424 +4,112 @@ import time
 import glob
 import shutil
 import re
-from bs4 import BeautifulSoup
 
 HANDLE = "sajib2405129"
-
+# API URL for fetching submissions
 API_URL = f"https://codeforces.com/api/user.status?handle={HANDLE}"
-MAIN_FOLDER = "CODEFORCES"
-
-HEADERS = {
-    "User-Agent": "Mozilla/5.0"
-}
-
+MAIN_FOLDER = "ACCEPTEDS"
 
 def clean_root_files():
-    """
-    Move old source files from repository root
-    into CODEFORCES folder.
-    """
-    extensions = [
-        "*.cpp",
-        "*.c",
-        "*.txt",
-        "*.java",
-        "*.py",
-        "*.cs",
-        "*.kt",
-        "*.rs",
-        "*.go",
-        "*.js"
-    ]
-
-    os.makedirs(MAIN_FOLDER, exist_ok=True)
-
+    # Root-e choriye thaka shob puran .cpp, .c, .txt file automatic ACCEPTEDS-e niye jabe
+    extensions = ['*.cpp', '*.c', '*.txt']
     for ext in extensions:
         for file_path in glob.glob(ext):
-
-            if file_path in ["sync.py", "README.md"]:
+            if file_path in ['sync.py', 'README.md']:
                 continue
-
+            os.makedirs(MAIN_FOLDER, exist_ok=True)
             try:
-                destination = os.path.join(
-                    MAIN_FOLDER,
-                    os.path.basename(file_path)
-                )
-
-                shutil.move(file_path, destination)
-
-                print(f"Moved {file_path} -> {destination}")
-
+                shutil.move(file_path, os.path.join(MAIN_FOLDER, file_path))
+                print(f"Moved {file_path} to {MAIN_FOLDER}/")
             except Exception as e:
                 print(f"Error moving {file_path}: {e}")
 
-
-def get_extension(language):
-    """
-    Convert Codeforces language name to file extension.
-    """
-
-    lang = language.lower()
-
-    if "c++" in lang or "gnu c++" in lang:
-        return "cpp"
-
-    if "c#" in lang or "csharp" in lang:
-        return "cs"
-
-    if "java" in lang:
-        return "java"
-
-    if "python" in lang:
-        return "py"
-
-    if lang == "c" or lang.startswith("c "):
-        return "c"
-
-    if "kotlin" in lang:
-        return "kt"
-
-    if "rust" in lang:
-        return "rs"
-
-    if "go" in lang:
-        return "go"
-
-    if "javascript" in lang:
-        return "js"
-
-    if "typescript" in lang:
-        return "ts"
-
-    return "txt"
-
-
-def sanitize_name(name):
-    """
-    Remove characters that are invalid in folder names.
-    """
-    return re.sub(r'[\\/*?:"<>|]', "", name).strip()
-
-
-def fetch_source_code(contest_id, submission_id):
-    """
-    Fetch actual submitted source code from
-    Codeforces submission page.
-    """
-
-    url = (
-        f"https://codeforces.com/contest/"
-        f"{contest_id}/submission/{submission_id}"
-    )
-
-    try:
-        response = requests.get(
-            url,
-            headers=HEADERS,
-            timeout=20
-        )
-
-        if response.status_code != 200:
-            print(
-                f"Failed to fetch submission "
-                f"{submission_id}: HTTP {response.status_code}"
-            )
-            return None
-
-        soup = BeautifulSoup(
-            response.text,
-            "html.parser"
-        )
-
-        source = soup.find(
-            "pre",
-            id="program-source-text"
-        )
-
-        if source is None:
-            source = soup.find(
-                "pre",
-                class_="source"
-            )
-
-        if source is None:
-            print(
-                f"Source code not found for "
-                f"submission {submission_id}"
-            )
-            return None
-
-        return source.get_text()
-
-    except Exception as e:
-        print(
-            f"Error fetching submission "
-            f"{submission_id}: {e}"
-        )
-        return None
-
-
-def create_readme(
-    readme_path,
-    contest_id,
-    index,
-    problem_name,
-    submission_id,
-    language,
-    verdict
-):
-    """
-    Create README containing problem and submission links.
-    """
-
-    problem_url = (
-        f"https://codeforces.com/contest/"
-        f"{contest_id}/problem/{index}"
-    )
-
-    submission_url = (
-        f"https://codeforces.com/contest/"
-        f"{contest_id}/submission/{submission_id}"
-    )
-
-    with open(
-        readme_path,
-        "w",
-        encoding="utf-8"
-    ) as f:
-
-        f.write(
-            f"# {contest_id}{index} - {problem_name}\n\n"
-        )
-
-        f.write(
-            f"**Verdict:** {verdict}\n\n"
-        )
-
-        f.write(
-            f"**Language:** {language}\n\n"
-        )
-
-        f.write(
-            f"**Submission ID:** {submission_id}\n\n"
-        )
-
-        f.write(
-            f"**Problem:** "
-            f"[View Problem]({problem_url})\n\n"
-        )
-
-        f.write(
-            f"**Submission:** "
-            f"[View Submission]({submission_url})\n"
-        )
-
+def get_extension(lang):
+    if 'C++' in lang: return 'cpp'
+    if 'Java' in lang: return 'java'
+    if 'Python' in lang: return 'py'
+    if 'C' in lang: return 'c'
+    return 'txt'
 
 def sync_codeforces():
-
-    print("=" * 50)
-    print("          CODEFORCES AUTO SYNC")
-    print("=" * 50)
-
-    print("\nCleaning root files...")
+    print("Cleaning root files...")
     clean_root_files()
-
-    print(
-        f"\nFetching submissions for {HANDLE}..."
-    )
-
-    try:
-        response = requests.get(
-            API_URL,
-            headers=HEADERS,
-            timeout=20
-        )
-
-        response.raise_for_status()
-
-        data = response.json()
-
-    except Exception as e:
-        print(
-            f"Failed to fetch Codeforces API: {e}"
-        )
+    
+    print(f"Fetching submissions for {HANDLE}...")
+    response = requests.get(API_URL).json()
+    
+    if response['status'] != 'OK':
+        print("Failed to fetch API")
         return
 
-    if data.get("status") != "OK":
-
-        print("Codeforces API returned an error:")
-        print(data)
-
-        return
-
-    submissions = data.get("result", [])
-
-    print(
-        f"Found {len(submissions)} submissions."
-    )
-
+    submissions = response['result']
     added = 0
-    skipped = 0
-    failed = 0
 
     for sub in submissions:
+        if sub.get('verdict') == 'OK':
+            contest_id = str(sub['problem']['contestId'])
+            index = sub['problem']['index']
+            problem_name = sub['problem']['name']
+            sub_id = str(sub['id'])
+            lang = sub['programmingLanguage']
+            ext = get_extension(lang)
 
-        # Only Accepted submissions
-        if sub.get("verdict") != "OK":
-            continue
+            safe_name = re.sub(r'[\\/*?:"<>|]', "", problem_name)
+            folder_name = os.path.join(MAIN_FOLDER, f"{contest_id}{index} - {safe_name}")
+            
+            code_path = os.path.join(folder_name, f"solution.{ext}")
+            readme_path = os.path.join(folder_name, "README.md")
 
-        try:
-            contest_id = str(
-                sub["problem"]["contestId"]
-            )
+            if os.path.exists(code_path) and os.path.exists(readme_path):
+                continue 
 
-            index = sub["problem"]["index"]
+            print(f"Downloading {contest_id}{index} - {problem_name} (Sub: {sub_id})...")
+            os.makedirs(folder_name, exist_ok=True)
 
-            problem_name = sub["problem"]["name"]
+            code_api_url = f"https://codeforces.com/api/contest.status?contestId={contest_id}&from=1&count=1&handle={HANDLE}"
+            
+            try:
+                problem_url = f"https://codeforces.com/contest/{contest_id}/problem/{index}"
+                with open(readme_path, 'w', encoding='utf-8') as f:
+                    f.write(f"<h1><a href='{problem_url}'>{contest_id}{index} - {problem_name}</a></h1>\n\n")
+                    f.write(f"<p>This is the solution for the problem <b>{problem_name}</b> on Codeforces.</p>")
+                    f.write(f"<p><a href='{problem_url}' target='_blank'>Click here to view the problem statement on Codeforces.</a></p>")
 
-            submission_id = str(sub["id"])
+                possible_old_files = [
+                    os.path.join(MAIN_FOLDER, f"{contest_id}{index}.{ext}"),
+                    os.path.join(MAIN_FOLDER, f"{contest_id}{index}{safe_name}.{ext}"),
+                    os.path.join(MAIN_FOLDER, f"{contest_id}{index}_{safe_name}.{ext}")
+                ]
+                
+                code_found = False
+                
+                
+                for root, dirs, files in os.walk(MAIN_FOLDER):
+                    if root == MAIN_FOLDER:
+                        for file in files:
+                            
+                            if file.startswith(f"{contest_id}{index}") and file.endswith(f".{ext}"):
+                                old_file_path = os.path.join(MAIN_FOLDER, file)
+                                shutil.move(old_file_path, code_path) 
+                                print(f"Moved existing code: {file} -> {folder_name}/solution.{ext}")
+                                code_found = True
+                                break
+                    if code_found: break
 
-            language = sub.get(
-                "programmingLanguage",
-                "Unknown"
-            )
+                if not code_found:
+                     with open(code_path, 'w', encoding='utf-8') as f:
+                        f.write(f"// Solution for {contest_id}{index} - {problem_name}\n")
+                        f.write(f"// Submitted at: https://codeforces.com/contest/{contest_id}/submission/{sub_id}\n")
+                        f.write(f"// Currently manual fetch required due to CF blocking scrapers.\n")
+                     print(f"Created placeholder code for {sub_id}.")
 
-            extension = get_extension(language)
+                added += 1
+                time.sleep(0.5)
+                
+            except Exception as e:
+                print(f"Error processing {sub_id}: {e}")
 
-            safe_name = sanitize_name(problem_name)
-
-            # ---------------------------------------
-            # One folder per problem
-            # ---------------------------------------
-
-            problem_folder = os.path.join(
-                MAIN_FOLDER,
-                f"{contest_id}{index} - {safe_name}"
-            )
-
-            os.makedirs(
-                problem_folder,
-                exist_ok=True
-            )
-
-            # ---------------------------------------
-            # One file per accepted submission
-            # ---------------------------------------
-
-            code_path = os.path.join(
-                problem_folder,
-                f"submission-{submission_id}.{extension}"
-            )
-
-            readme_path = os.path.join(
-                problem_folder,
-                f"submission-{submission_id}.md"
-            )
-
-            # Already archived
-            if os.path.exists(code_path):
-
-                print(
-                    f"Already archived: "
-                    f"{contest_id}{index} "
-                    f"(Submission {submission_id})"
-                )
-
-                skipped += 1
-                continue
-
-            print(
-                f"\nArchiving {contest_id}{index} "
-                f"- {problem_name}"
-            )
-
-            print(
-                f"Submission: {submission_id}"
-            )
-
-            print(
-                f"Language: {language}"
-            )
-
-            # ---------------------------------------
-            # Fetch actual source code
-            # ---------------------------------------
-
-            source_code = fetch_source_code(
-                contest_id,
-                submission_id
-            )
-
-            if source_code is None:
-
-                print(
-                    f"FAILED: Could not fetch source "
-                    f"for {submission_id}"
-                )
-
-                failed += 1
-                continue
-
-            # ---------------------------------------
-            # Save source code
-            # ---------------------------------------
-
-            with open(
-                code_path,
-                "w",
-                encoding="utf-8"
-            ) as f:
-
-                f.write(source_code)
-
-            print(
-                f"Saved: {code_path}"
-            )
-
-            # ---------------------------------------
-            # Save submission README
-            # ---------------------------------------
-
-            create_readme(
-                readme_path,
-                contest_id,
-                index,
-                problem_name,
-                submission_id,
-                language,
-                sub.get("verdict", "OK")
-            )
-
-            print(
-                f"Saved: {readme_path}"
-            )
-
-            added += 1
-
-            # Don't hammer Codeforces
-            time.sleep(1)
-
-        except Exception as e:
-
-            print(
-                f"Error processing submission "
-                f"{sub.get('id', 'UNKNOWN')}: {e}"
-            )
-
-            failed += 1
-
-    print("\n" + "=" * 50)
-    print("             SYNC COMPLETE")
-    print("=" * 50)
-
-    print(f"New archived    : {added}")
-    print(f"Already archived: {skipped}")
-    print(f"Failed          : {failed}")
-
-    print(
-        f"\nArchive location: {MAIN_FOLDER}/"
-    )
-
+    print(f"Sync complete. {added} new solutions organized in LeetCode style.")
 
 if __name__ == "__main__":
     sync_codeforces()
