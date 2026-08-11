@@ -8,7 +8,7 @@ import re
 HANDLE = "sajib2405129"
 # API URL for fetching submissions
 API_URL = f"https://codeforces.com/api/user.status?handle={HANDLE}"
-MAIN_FOLDER = "ACCEPTEDS"
+MAIN_FOLDER = "CODEFORCES"
 
 def clean_root_files():
     # Root-e choriye thaka shob puran .cpp, .c, .txt file automatic ACCEPTEDS-e niye jabe
