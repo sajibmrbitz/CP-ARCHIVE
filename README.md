@@ -12,7 +12,7 @@ This archive helps me:
 - Stay contest-ready even on phone
 
 This includes:
-- **CODEFORCES**: soln codes to all the problems I have solved on **CodeForces**
+- **ACCEPTEDS**: soln codes to all the problems I have solved on **CodeForces**
 - **LeetCode**: soln codes to all the problems I have solved on **LeetCode**
 
 >ALL THE PROBLEMS ARE ARRANGED IN ORDER WITH CORRESPONDING PROBLEM STATEMENT, INPUT-OUTPUT SETS AND MY SOLUTION FILE(S)
